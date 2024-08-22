@@ -20,7 +20,7 @@ model_type = model_name.split("-")[-1]
 outpath = f"{results_path}/{model_name}"
 Path(outpath).mkdir(exist_ok=True, parents=True)
 outpath += f"/{method}"
-if method == "harvest": outpath += f"_{choice}"
+if method == "harvest": outpath += f"_{choice}_{dataset}"
 if os.path.exists(f"{outpath}.pt"):
     print("results already exist")
     sys.exit(0)
