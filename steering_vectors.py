@@ -18,7 +18,7 @@ for model in models:
 
     yes_ixs = np.argwhere(data["implicature"] == "yes").flatten()
     no_ixs = np.argwhere(data["implicature"] == "no").flatten()
-    acts = t.load(f"{results_path}/{model}/harvest_train.pt", weights_only=True)
+    acts = t.load(f"{results_path}/{model}/harvest_None_train.pt", weights_only=True)
     c3 = acts[yes_ixs].mean(dim=0) - acts[no_ixs].mean(dim=0)
 
     candidates = t.stack([c1, c2, c3])
