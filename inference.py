@@ -42,21 +42,17 @@ pipeline = ImplicaturePipeline(model, tokenizer, method, model_type)
 results, answers, max_new_tokens = [], [], 128
 for i in trange(len(data)):
     messages = [
-        {"role": "user", "content": data.at[i, "prompt"]}
+        {"role": "user", "content": data.at[i, "prompt"]},
+        {"role": "assistant", "content": "answer: The response implies \""}
     ]
-    if model_type == "instruct":
-        messages += [
-            {"role": "assistant", "content": "answer: The response implies "}
-        ]
-    elif model_type == "base":
-        messages[0]["content"] += f"\nanswer: The response implies "
+
     if method == "zero_shot":
         answer, x = pipeline(messages, max_new_tokens=max_new_tokens)
         x = F.pad(x, (0, 0, 0, max_new_tokens-len(x)), mode="constant", value=-1)
         results.append(x.cpu())
         answers.append(answer)
     elif method == "harvest":
-        messages[-1]["content"] += str(choice)
+        if choice != "None": messages[-1]["content"] += str(choice)
         x = pipeline(messages)
         results.append(x.cpu())
 

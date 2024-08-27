@@ -38,15 +38,17 @@ class ImplicaturePipeline:
         if self.model_type == "instruct":
             # apply chat template
             prompt = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-            # if necessary, allow for continuation instead of QA
-            prompt = self.check_continue(messages, prompt)
+            # allow for continuation instead of QA
+            message = messages[-1]["content"]
+            ix = prompt.rindex(message) + len(message)
+            prompt = prompt[:ix]
             # set add_special_tokens
-            ast = False
+            ast, sst = False, False
         elif self.model_type == "base":
             # no prompt template for base models
-            prompt = messages[0]["content"]
-            # set add_special_tokens
-            ast = True
+            prompt = f"{messages[0]["content"]}\n{messages[1]["content"]}"
+            # set add_special_tokens, skip_special_tokens
+            ast, sst = True, True
         # tokenize
         tks = self.tokenizer(prompt, return_tensors="pt", add_special_tokens=ast).to(self.model.device)
         # return logits or residual stream, depending on mode
@@ -63,10 +65,10 @@ class ImplicaturePipeline:
                 )
                 logits = t.stack(out["scores"]).squeeze(1).to(self.model.dtype)
                 answer = self.tokenizer.decode(
-                    logits.argmax(dim=-1),
-                    skip_special_tokens=True,
+                    out[0].squeeze(0),
+                    skip_special_tokens=sst,
                     clean_up_tokenization_spaces=True
-                ).strip()
+                ).strip()[len(prompt):]
                 scores = logits[:, self.logit_ids]
                 free_mem([prompt, tks, out, logits])
                 return answer, scores
@@ -75,22 +77,3 @@ class ImplicaturePipeline:
                 activations = out["hidden_states"][-1].squeeze(0)[-1, :]
                 free_mem([prompt, tks, out])
                 return activations
-
-    def check_continue(
-            self,
-            messages: List[Dict[str, str]],
-            prompt: str
-    ) -> str:
-        '''
-        if we want continuation of the prompt instead of QA, we need to modify the prompt a bit.
-        '''
-        if messages[-1]["role"] != "assistant": return prompt
-        message = messages[-1]["content"]
-        # check if we want to end with a space
-        space = False
-        if message[-1] == " ":
-            space = True
-            message = message[:-1]
-        ix = prompt.rindex(message) + len(message)
-        prompt = f"{prompt[:ix]} " if space else prompt[:ix]
-        return prompt

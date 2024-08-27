@@ -10,5 +10,5 @@ models = {
     "llama-3.1-8b-base": "meta-llama/Meta-Llama-3.1-8B", # 8b
 
     "gemma-2-2b-instruct": "google/gemma-2-2b-it", # 2b
-    "gemma-2-2b-base": "google/gemma-2-2b-it", # 2b
+    "gemma-2-2b-base": "google/gemma-2-2b", # 2b
 }
