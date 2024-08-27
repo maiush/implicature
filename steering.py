@@ -59,7 +59,7 @@ results, answers, max_new_tokens = [], [], 128
 for i in trange(len(data)):
     messages = [
         {"role": "user", "content": data.at[i, "prompt"]},
-        {"role": "assistant", "content": "answer: The response implies "}
+        {"role": "assistant", "content": "answer: The response implies \""}
     ]
     answer, x = pipeline(messages, max_new_tokens=max_new_tokens)
     x = F.pad(x, (0, 0, 0, max_new_tokens-len(x)), mode="constant", value=-1)
